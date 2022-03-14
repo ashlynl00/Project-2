@@ -1,49 +1,29 @@
 const express = require('express');
-const app = express();
-
-
-// require mongoose file
-require('./db-utils/connect');
-
-
-// connect the controllers
-const hrController = require('./controllers/controller');
-
-
-// require all packages
 const methodOverride = require('method-override');
 const session = require('express-session');
+const HrUser = require('./models/hrUsers');
 const MongoDBStore = require('connect-mongodb-session')(session);
+//require('dotenv').config()
+const app = express();
 const store = new MongoDBStore({
     uri: 'mongodb://localhost:27017/'+ 'human-resources',
     collection: 'mySessions'
 });
-
-// require controllers
-const controller = require('./controllers/controller');
-
-// require models
-// const Employee = require('./Models/employee');
-// const HRUsers = require('./Models/hrUsers');
-
-////// middleware
-
-// log where there is a request coming in
-app.use(require('./middleware/logger'));
-
-// enable method override
-app.use(methodOverride('_method'));
-
-// create a session
+require('./db-utils/connect')
+const hrController = require('./controllers/userController')
+const employeeController = require('./controllers/controller')
+app.use(express.static("public"))
+app.use(methodOverride('_method'))
+app.use(require('./middleware/logger'))
+const isLoggedIn = require('./middleware/isLoggedIn')
+app.use(express.urlencoded({extended: true}));
+app.use(express.json());
 app.use(session({
-    secret: 'this is a secret',
+    secret: 'secret',
     resave: false,
     saveUninitialized: false,
     store: store,
-}));
-
-//////// login info goes here:
-const isLoggedIn = require('./middleware/isLoggedIn');
+}))
 app.use(async (req, res, next)=>{
     // This will send info from session to templates
     res.locals.isLoggedIn = req.session.isLoggedIn
@@ -52,19 +32,18 @@ app.use(async (req, res, next)=>{
         res.locals.username = currentUser.username
         res.locals.userId = req.session.userId.toString()
     }
-    next();
-});
+    next()
+})
+app.get('/', (req, res)=>{
+    res.render("home.ejs")
+})
+app.use('/hrUser', isLoggedIn, hrController)
+app.use('/employees', employeeController)
 
-// random lines of code idk about yet
-app.use(express.urlencoded({extended: true}));
-app.use(express.json());
-
-
-app.use('/hrUser', isLoggedIn, hrController);
-app.use('/employees', hrController);
+const port = process.env.PORT || 3000
+app.listen(port, ()=>{
+    console.log('app running')
+})
 
 
 
-app.listen(3000, ()=>{
-    console.log('express is listening!');
-});
