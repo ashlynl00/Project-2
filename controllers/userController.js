@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 // INDEX: GET
-// /hrUsers
+// /login
 // Gives a page displaying all the users
 router.get('/login', (req, res)=>{
     res.render('login.ejs')
@@ -19,12 +19,14 @@ router.post("/login", async (req, res)=>{
                 // It's a match! Successful login!
                 req.session.isLoggedIn = true;
                 req.session.userId = possibleUser._id;
-                res.redirect("/")
+                res.redirect("/hrUser")
             }else{
+                console.log('in first else');
                 res.redirect("/hrUsers/login")
             }
         }else{
             // Let them try again?
+            console.log('in second else');
             res.redirect("/hrUsers/login")
         }
     }catch(err){

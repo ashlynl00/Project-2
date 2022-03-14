@@ -10,7 +10,7 @@ const app = express();
 
 // Models
 //add schema variable
-const hrUsers = require("../models/employees")
+const hrUsers = require("../Models/employee");
 
 // IndexRoute
 router.get('/', async(req, res)=>{
